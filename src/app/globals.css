@@ -101,6 +101,15 @@ input {
   filter: blur(26px);
 }
 
+.display-stage__spotlights {
+  background:
+    radial-gradient(circle at 14% 10%, rgba(255, 236, 170, 0.16), transparent 18%),
+    radial-gradient(circle at 86% 12%, rgba(121, 224, 255, 0.16), transparent 18%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.1) 0%, transparent 28%),
+    linear-gradient(245deg, rgba(255, 255, 255, 0.08) 0%, transparent 26%);
+  opacity: 0.9;
+}
+
 .display-stage__rings {
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px),
@@ -121,6 +130,144 @@ input {
   transform: perspective(700px) rotateX(72deg);
   transform-origin: center bottom;
   opacity: 0.55;
+}
+
+.display-stage__ticker {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.display-stage__ticker-card {
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.display-stage__ticker-label {
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(207, 241, 255, 0.76);
+}
+
+.display-stage__focus {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 44px rgba(7, 18, 40, 0.2);
+}
+
+.display-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: end;
+  min-height: 23rem;
+}
+
+.display-podium__lane {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+}
+
+.display-podium__lane--center {
+  transform: translateY(-0.4rem);
+}
+
+.display-podium__card {
+  width: 100%;
+  max-width: 14rem;
+  margin-bottom: -0.4rem;
+  position: relative;
+  z-index: 1;
+  padding: 1.15rem 1rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.8rem;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.3), transparent 50%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 18px 40px rgba(7, 18, 40, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.display-podium__ghost {
+  width: 100%;
+  max-width: 12rem;
+  min-height: 9rem;
+}
+
+.display-podium__pedestal {
+  width: min(100%, 13rem);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 1.6rem 1.6rem 0.9rem 0.9rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 18px 36px rgba(7, 18, 40, 0.22);
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+.display-podium__pedestal--leader {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 24px 48px rgba(255, 215, 90, 0.18),
+    0 18px 36px rgba(7, 18, 40, 0.24);
+}
+
+.display-podium__crown {
+  position: absolute;
+  left: 50%;
+  top: -0.95rem;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe89a 0%, #ffd45a 100%);
+  color: #183153;
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: 0 16px 32px rgba(255, 210, 90, 0.28);
+}
+
+.display-podium__rank {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 2.25rem;
+  line-height: 1;
+  color: #183153;
+}
+
+.display-rank-burst {
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.4rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 16px 32px rgba(7, 18, 40, 0.16);
+}
+
+.display-rank-burst--idle {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.display-rank-burst__label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(207, 241, 255, 0.76);
 }
 
 .pokemon-avatar__float {
@@ -281,6 +428,34 @@ input {
 }
 
 @media (max-width: 768px) {
+  .display-stage__ticker {
+    grid-template-columns: 1fr;
+  }
+
+  .display-podium {
+    min-height: 19rem;
+    gap: 0.5rem;
+  }
+
+  .display-podium__card {
+    max-width: 10rem;
+    padding-inline: 0.7rem;
+  }
+
+  .display-podium__pedestal {
+    border-radius: 1.2rem 1.2rem 0.7rem 0.7rem;
+  }
+
+  .display-podium__rank {
+    font-size: 1.8rem;
+  }
+
+  .display-podium__crown {
+    top: -0.8rem;
+    padding: 0.38rem 0.72rem;
+    font-size: 0.7rem;
+  }
+
   .evolution-screen__battlefield {
     min-height: 18rem;
     padding: 1.5rem;
@@ -293,6 +468,12 @@ input {
 
   .evolution-screen__sprite-anchor {
     width: min(78vw, 16rem);
+  }
+}
+
+@media (min-width: 640px) {
+  .display-stage__ticker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
