@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { getBroadcastChannel } from "@/lib/storage";
+import { getBroadcastChannel, readBroadcastState } from "@/lib/storage";
 import type { ClassroomState } from "@/lib/types";
 import { useClassroomStore } from "@/store/use-classroom-store";
 
@@ -20,8 +20,10 @@ export function useClassroomSync() {
     }
 
     const handler = (event: MessageEvent<ClassroomState>) => {
-      if (event.data) {
-        syncFromBroadcast(event.data);
+      const nextState = readBroadcastState(event.data);
+
+      if (nextState) {
+        syncFromBroadcast(nextState);
       }
     };
 

@@ -2,6 +2,21 @@ import { CHANNEL_NAME, STORAGE_KEY } from "@/lib/constants";
 import type { ClassroomState } from "@/lib/types";
 
 let channel: BroadcastChannel | null = null;
+const CLIENT_ID = `${CHANNEL_NAME}:${Math.random().toString(36).slice(2, 10)}`;
+
+type BroadcastPayload = {
+  sourceId: string;
+  state: ClassroomState;
+};
+
+function isBroadcastPayload(value: unknown): value is BroadcastPayload {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "sourceId" in value &&
+      "state" in value,
+  );
+}
 
 export function getStoredState() {
   if (typeof window === "undefined") {
@@ -35,6 +50,25 @@ export function clearStoredState() {
   }
 
   window.localStorage.removeItem(STORAGE_KEY);
+}
+
+export function broadcastState(state: ClassroomState) {
+  getBroadcastChannel()?.postMessage({
+    sourceId: CLIENT_ID,
+    state,
+  } satisfies BroadcastPayload);
+}
+
+export function readBroadcastState(value: unknown) {
+  if (isBroadcastPayload(value)) {
+    return value.sourceId === CLIENT_ID ? null : value.state;
+  }
+
+  if (value && typeof value === "object" && "teams" in value) {
+    return value as ClassroomState;
+  }
+
+  return null;
 }
 
 export function getBroadcastChannel() {

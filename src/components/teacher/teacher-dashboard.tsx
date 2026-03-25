@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { MascotAvatar } from "@/components/game/mascot-avatar";
+import { SessionSummaryOverlay } from "@/components/teacher/session-summary-overlay";
 import { getEvolutionStage, getEvolutionStageCount } from "@/lib/constants";
 import { getProgressToNextLevel, rankTeams } from "@/lib/game-logic";
 import { useClassroomSync } from "@/hooks/use-classroom-sync";
@@ -18,11 +19,14 @@ export default function TeacherDashboard() {
   const audioEnabled = useClassroomStore((state) => state.audioEnabled);
   const sessionId = useClassroomStore((state) => state.sessionId);
   const isHydrated = useClassroomStore((state) => state.isHydrated);
+  const history = useClassroomStore((state) => state.history);
   const updateTeamScore = useClassroomStore((state) => state.updateTeamScore);
+  const undoLastScore = useClassroomStore((state) => state.undoLastScore);
   const replayEvolution = useClassroomStore((state) => state.replayEvolution);
   const toggleAudio = useClassroomStore((state) => state.toggleAudio);
   const resetSession = useClassroomStore((state) => state.resetSession);
   const { playScoreDing, playEvolutionWhoosh } = useSoundEffects(audioEnabled);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
   const rankedTeams = useMemo(() => rankTeams(teams), [teams]);
 
@@ -68,8 +72,13 @@ export default function TeacherDashboard() {
     window.open("/display", "robotics-display", "noopener,noreferrer");
   };
 
+  const handleUndo = () => {
+    undoLastScore();
+  };
+
   const handleReset = () => {
     if (window.confirm("Xóa phiên học hiện tại và tạo lại từ đầu?")) {
+      setIsSummaryOpen(false);
       resetSession();
     }
   };
@@ -119,6 +128,26 @@ export default function TeacherDashboard() {
               </Link>
               <button
                 type="button"
+                onClick={handleUndo}
+                disabled={!history.length}
+                className={cn(
+                  "rounded-full border-2 px-6 py-3 font-bold transition",
+                  history.length
+                    ? "border-amber-200 bg-amber-50 text-amber-700"
+                    : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400",
+                )}
+              >
+                Hoàn tác lượt vừa rồi
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSummaryOpen(true)}
+                className="rounded-full border-2 border-violet-200 bg-violet-50 px-6 py-3 font-bold text-violet-700"
+              >
+                Kết thúc buổi học
+              </button>
+              <button
+                type="button"
                 onClick={handleReset}
                 className="rounded-full border-2 border-rose-200 bg-rose-50 px-6 py-3 font-bold text-rose-600"
               >
@@ -152,7 +181,7 @@ export default function TeacherDashboard() {
                       <div className="flex-1">
                         <div className="font-heading text-2xl leading-none text-slate-950">{team.name}</div>
                         <div className="mt-1 text-sm text-slate-500">
-                          {currentStage.name} · Giai đoạn {team.unlockedLevel}/{stageCount}
+                          {currentStage.name} · Dạng {team.unlockedLevel}/{stageCount}
                         </div>
                       </div>
                       <div className="rounded-full bg-white px-3 py-2 text-sm font-black text-slate-900 shadow-md">
@@ -195,7 +224,7 @@ export default function TeacherDashboard() {
                         {formatPoints(team.score)}
                       </span>
                       <span className="rounded-full bg-cyan-50 px-3 py-1 text-sm font-bold text-cyan-700">
-                        Giai đoạn {team.unlockedLevel}/{stageCount}
+                        Dạng {team.unlockedLevel}/{stageCount}
                       </span>
                       <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-600">
                         {currentStage.name}
@@ -206,7 +235,7 @@ export default function TeacherDashboard() {
 
                 <div className="mt-5">
                   <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-500">
-                    <span>{team.unlockedLevel >= stageCount ? "Đã đạt dạng cuối" : "Tiến độ đến lần tiến hóa tiếp theo"}</span>
+                    <span>{team.unlockedLevel >= stageCount ? "Đã chạm dạng cuối" : "Tiến độ tới lần tiến hóa tiếp theo"}</span>
                     <span>{team.unlockedLevel >= stageCount ? "Tối đa" : `${Math.round(progress * 100)}%`}</span>
                   </div>
                   <div className="h-4 overflow-hidden rounded-full bg-slate-100">
@@ -220,34 +249,41 @@ export default function TeacherDashboard() {
                   </div>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={() => handleScore(team.id, 1)}
+                    className="rounded-[1.5rem] border-2 border-emerald-200 bg-emerald-100 px-4 py-4 text-lg font-black text-emerald-900 shadow-[0_16px_28px_rgba(16,185,129,0.16)]"
+                  >
+                    +1 điểm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleScore(team.id, 3)}
+                    className="rounded-[1.5rem] border-2 border-emerald-300 bg-emerald-300 px-4 py-4 text-lg font-black text-slate-950 shadow-[0_16px_28px_rgba(52,211,153,0.2)]"
+                  >
+                    +3 điểm
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleScore(team.id, 5)}
-                    className="rounded-[1.5rem] border-2 border-emerald-300 bg-emerald-300 px-4 py-4 text-lg font-black text-slate-950 shadow-[0_16px_28px_rgba(52,211,153,0.2)]"
+                    className="rounded-[1.5rem] border-2 border-cyan-300 bg-cyan-400 px-4 py-4 text-lg font-black text-white shadow-[0_16px_28px_rgba(34,211,238,0.2)]"
                   >
                     +5 điểm
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleScore(team.id, 10)}
-                    className="rounded-[1.5rem] border-2 border-cyan-300 bg-cyan-400 px-4 py-4 text-lg font-black text-white shadow-[0_16px_28px_rgba(34,211,238,0.2)]"
-                  >
-                    +10 điểm
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleScore(team.id, -5)}
+                    onClick={() => handleScore(team.id, -1)}
                     className="rounded-[1.5rem] border-2 border-rose-200 bg-rose-50 px-4 py-4 text-lg font-black text-rose-600"
                   >
-                    -5 điểm
+                    Trừ 1
                   </button>
                   <button
                     type="button"
                     onClick={() => handleReplayEvolution(team.id)}
-                    className="rounded-[1.5rem] border-2 border-white/90 bg-white px-4 py-4 text-lg font-black text-slate-700"
+                    className="rounded-[1.5rem] border-2 border-white/90 bg-white px-4 py-4 text-lg font-black text-slate-700 xl:col-span-2"
                   >
-                    Xem lại tiến hóa
+                    Xem tiến hóa
                   </button>
                 </div>
               </article>
@@ -255,6 +291,13 @@ export default function TeacherDashboard() {
           })}
         </section>
       </div>
+
+      <SessionSummaryOverlay
+        open={isSummaryOpen}
+        teams={rankedTeams}
+        onClose={() => setIsSummaryOpen(false)}
+        onReset={handleReset}
+      />
     </main>
   );
 }

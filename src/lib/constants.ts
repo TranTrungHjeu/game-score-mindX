@@ -4,7 +4,7 @@ export const STORAGE_KEY = "robotics-evolution-arena:v1";
 export const CHANNEL_NAME = "robotics-evolution-arena";
 export const TEAM_LIMITS = {
   min: 2,
-  max: 6,
+  max: 4,
 } as const;
 
 function buildArtworkPath(id: number) {

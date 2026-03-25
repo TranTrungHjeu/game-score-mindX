@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { MascotAvatar } from "@/components/game/mascot-avatar";
-import { DEFAULT_TEAM_NAMES, MASCOT_FAMILIES, TEAM_LIMITS, getEvolutionStageCount } from "@/lib/constants";
-import { createDefaultTeamSeeds, getThresholdForLevel } from "@/lib/game-logic";
+import { DEFAULT_TEAM_NAMES, MASCOT_FAMILIES, TEAM_LIMITS } from "@/lib/constants";
+import { createDefaultTeamSeeds } from "@/lib/game-logic";
 import { useClassroomSync } from "@/hooks/use-classroom-sync";
 import { fetchPokemonCatalog } from "@/lib/pokeapi";
 import type { MascotFamily, TeamSeed } from "@/lib/types";
@@ -32,7 +32,6 @@ function SetupTeamCard({
   const [showAll, setShowAll] = useState(false);
   const deferredQuery = useDeferredValue(query);
   const family = team.mascot;
-  const stageCount = getEvolutionStageCount(team.mascot);
   const filteredFamilies = useMemo(() => {
     const keyword = deferredQuery.trim().toLocaleLowerCase("vi");
 
@@ -58,10 +57,20 @@ function SetupTeamCard({
         background: `linear-gradient(180deg, ${family.secondary}66 0%, rgba(255,255,255,0.94) 34%, rgba(255,255,255,0.9) 100%)`,
       }}
     >
-      <div className="flex flex-col gap-5 lg:flex-row">
-        <div className="flex flex-1 items-center gap-4">
-          <MascotAvatar family={team.mascot} level={1} size={132} />
-          <div className="flex-1">
+      <div className="grid gap-5 xl:grid-cols-[minmax(18rem,0.72fr)_minmax(0,1.28fr)]">
+        <div
+          className="rounded-[1.8rem] border-2 border-white/80 p-5"
+          style={{
+            background: `linear-gradient(180deg, rgba(255,255,255,0.82) 0%, ${family.secondary}88 100%)`,
+          }}
+        >
+          <div className="kid-label">Pokémon của nhóm</div>
+          <div className="mt-4 flex flex-col items-center text-center">
+            <MascotAvatar family={team.mascot} level={1} size={224} glow className="mx-auto" />
+            <div className="mt-4 font-heading text-4xl leading-none text-slate-950">{family.evolutionChain[0]?.name ?? family.name}</div>
+          </div>
+
+          <div className="mt-5">
             <div className="kid-label">Tên nhóm</div>
             <input
               value={team.name}
@@ -72,7 +81,7 @@ function SetupTeamCard({
           </div>
         </div>
 
-        <div className="flex-[1.2]">
+        <div className="min-w-0">
           <div className="kid-label">Pokémon đại diện</div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <input
@@ -96,33 +105,35 @@ function SetupTeamCard({
                   type="button"
                   onClick={() => onFamilyChange(family)}
                   className={cn(
-                    "rounded-[1.6rem] border-2 px-3 py-3 text-left transition duration-200",
+                    "flex items-center gap-3 rounded-[1.35rem] border px-4 py-3 text-left transition duration-200",
                     team.mascot.id === family.id
-                      ? "translate-y-[-2px] text-slate-950 shadow-[0_16px_32px_rgba(56,189,248,0.18)]"
-                      : "border-white/90 bg-white/90 text-slate-700 hover:translate-y-[-2px] hover:border-cyan-200 hover:bg-cyan-50",
+                      ? "border-slate-900/10 bg-white text-slate-950 shadow-[0_10px_22px_rgba(15,23,42,0.08)]"
+                      : "border-white/90 bg-white/88 text-slate-700 hover:border-slate-200 hover:bg-white",
                   )}
                   style={
                     team.mascot.id === family.id
                       ? {
-                          borderColor: `${family.accent}88`,
-                          background: `linear-gradient(135deg, ${family.secondary}, white)`,
+                          borderColor: `${family.accent}66`,
+                          background: `linear-gradient(180deg, rgba(255,255,255,0.98), ${family.secondary}66)`,
                         }
                       : undefined
                   }
                 >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="inline-block h-3 w-3 rounded-full border border-white/80"
-                      style={{ backgroundColor: family.accent }}
-                    />
-                    <div className="font-heading text-lg">{family.name}</div>
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full border border-white/90"
+                    style={{ backgroundColor: family.accent }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-heading text-xl leading-none">{family.name}</div>
                   </div>
-                  <div className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
-                    {family.evolutionChain.length} giai đoạn
-                  </div>
-                  <div className="mt-1 text-sm leading-6 text-slate-600">
-                    {family.evolutionChain.map((stage) => stage.name).join(" → ")}
-                  </div>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-3 py-1 text-xs font-bold",
+                      team.mascot.id === family.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500",
+                    )}
+                  >
+                    {team.mascot.id === family.id ? "Đang chọn" : "Chọn"}
+                  </span>
                 </button>
               ))}
             </div>
@@ -152,41 +163,6 @@ function SetupTeamCard({
           ) : null}
         </div>
       </div>
-
-      <div className="mt-5">
-        <div className="kid-label">Các mốc tiến hóa</div>
-        <div
-          className="mt-3 grid gap-4 rounded-[1.6rem] px-4 py-4 lg:grid-cols-[10rem_1fr]"
-          style={{
-            background: `linear-gradient(135deg, ${family.accent}18, #ffffff 38%, ${family.secondary}55 100%)`,
-          }}
-        >
-          <div className="flex items-center justify-center">
-            <MascotAvatar family={team.mascot} level={stageCount} size={132} glow />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {family.evolutionChain.map((stage, index) => {
-              const level = index + 1;
-              const threshold = getThresholdForLevel(level);
-              const thresholdLabel = index === stageCount - 1 ? `${threshold}+ điểm` : `${threshold} điểm`;
-
-              return (
-                <div
-                  key={`${team.id}-level-${level}`}
-                  className="rounded-[1.35rem] border-2 border-white/85 bg-white/85 px-4 py-3 text-slate-800"
-                >
-                  <div className="text-sm font-black text-sky-700">Giai đoạn {level}</div>
-                  <div className="mt-2 font-heading text-2xl leading-none text-slate-900">{stage.name}</div>
-                  <div className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
-                    {thresholdLabel}
-                  </div>
-                  <div className="mt-2 text-sm text-slate-600">{stage.summary}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
     </article>
   );
 }
@@ -203,7 +179,7 @@ export default function SetupPageClient() {
 
   const initialTeams =
     teamsInStore.length >= TEAM_LIMITS.min
-      ? teamsInStore.map((team) => ({
+      ? teamsInStore.slice(0, TEAM_LIMITS.max).map((team) => ({
           id: team.id,
           name: team.name,
           mascot: team.mascot,
@@ -224,7 +200,6 @@ function SetupEditor({ initialTeams }: { initialTeams: EditableTeam[] }) {
   const [selectedCount, setSelectedCount] = useState(initialTeams.length);
   const [teams, setTeams] = useState<EditableTeam[]>(initialTeams);
   const [pokemonOptions, setPokemonOptions] = useState<MascotFamily[]>(MASCOT_FAMILIES);
-  const [catalogStatus, setCatalogStatus] = useState<"loading" | "ready" | "error">("loading");
 
   const selectedTeams = useMemo(() => teams.slice(0, selectedCount), [selectedCount, teams]);
   const availableFamilies = useMemo(() => {
@@ -254,15 +229,11 @@ function SetupEditor({ initialTeams }: { initialTeams: EditableTeam[] }) {
         if (families.length > 0) {
           setPokemonOptions(families);
         }
-
-        setCatalogStatus("ready");
       })
       .catch(() => {
         if (!isActive) {
           return;
         }
-
-        setCatalogStatus("error");
       });
 
     return () => {
@@ -316,94 +287,66 @@ function SetupEditor({ initialTeams }: { initialTeams: EditableTeam[] }) {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_14%,rgba(255,196,102,0.28),transparent_14%),radial-gradient(circle_at_92%_10%,rgba(76,201,240,0.26),transparent_16%),radial-gradient(circle_at_18%_88%,rgba(255,153,200,0.18),transparent_18%)]" />
       <div className="relative mx-auto max-w-7xl">
         <section className="arena-panel rounded-[2.6rem] border-2 p-6 sm:p-8">
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-              <div className="rounded-[2rem] border-2 border-white/80 bg-white/55 p-5 sm:p-6">
-                <div className="kid-chip text-sm font-bold text-sky-700">Thiết lập lớp học</div>
-                <h1 className="mt-4 font-heading text-4xl leading-tight text-slate-900 sm:text-5xl">
-                  Chọn số đội và Pokémon đại diện cho từng nhóm
-                </h1>
-                <p className="kid-subtle mt-3 max-w-2xl text-base leading-7">
-                  Thiết lập nhanh để cô, thầy vào tiết học ngay mà không phải chỉnh quá nhiều.
-                </p>
+          <div className="rounded-[2rem] border-2 border-white/80 bg-white/55 p-5 sm:p-6">
+            <div className="kid-chip text-sm font-bold text-sky-700">Thiết lập lớp học</div>
+            <h1 className="mt-4 font-heading text-4xl leading-tight text-slate-900 sm:text-5xl">
+              Chọn số đội và Pokémon đại diện cho từng nhóm
+            </h1>
+            <p className="kid-subtle mt-3 max-w-2xl text-base leading-7">
+              Thiết lập nhanh để cô, thầy vào tiết học ngay mà không phải chỉnh quá nhiều.
+            </p>
 
-                <div className="mt-6 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => updateTeamCount(selectedCount - 1)}
-                    className="grid h-14 w-14 place-items-center rounded-[1.5rem] border-2 border-slate-200 bg-white text-2xl font-black text-slate-900 shadow-[0_14px_28px_rgba(97,117,143,0.14)]"
-                  >
-                    -
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updateTeamCount(selectedCount + 1)}
-                    className="grid h-14 w-14 place-items-center rounded-[1.5rem] border-2 border-cyan-300 bg-cyan-400 text-2xl font-black text-white shadow-[0_14px_28px_rgba(34,211,238,0.28)]"
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                  {Array.from({ length: TEAM_LIMITS.max - TEAM_LIMITS.min + 1 }, (_, index) => TEAM_LIMITS.min + index).map((count) => (
-                    <button
-                      key={count}
-                      type="button"
-                      onClick={() => updateTeamCount(count)}
-                      className={cn(
-                        "rounded-[1.4rem] border-2 px-4 py-3 text-base font-black transition duration-200",
-                        selectedCount === count
-                          ? "border-cyan-300 bg-cyan-400 text-white shadow-[0_16px_28px_rgba(34,211,238,0.26)]"
-                          : "border-white/90 bg-white/88 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50",
-                      )}
-                    >
-                      {count} đội
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={handleStart}
-                    className="rounded-full border-2 border-cyan-300 bg-cyan-400 px-7 py-4 font-black text-white shadow-[0_20px_40px_rgba(14,165,233,0.28)] transition hover:translate-y-[-1px]"
-                  >
-                    Bắt đầu tiết học
-                  </button>
-                  <Link
-                    href="/teacher"
-                    className="rounded-full border-2 border-white/90 bg-white px-6 py-4 font-bold text-slate-700 transition hover:border-cyan-200 hover:text-cyan-600"
-                  >
-                    Mở bảng chấm điểm
-                  </Link>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-                <div className="rounded-[2rem] border-2 border-white/90 bg-white/85 px-5 py-4 shadow-[0_18px_36px_rgba(97,117,143,0.12)]">
-                  <div className="text-sm font-bold text-slate-500">Số đội trong lớp</div>
-                  <div className="mt-1 font-heading text-4xl text-slate-950">{selectedCount} đội</div>
-                  <div className="mt-2 text-sm text-slate-500">Bạn có thể tạo từ 2 đến 6 đội cho một buổi học.</div>
-                </div>
-
-                <div className="rounded-[2rem] border-2 border-white/90 bg-white/85 px-5 py-4 shadow-[0_18px_36px_rgba(97,117,143,0.12)]">
-                  <div className="text-sm font-bold text-slate-500">Danh sách Pokémon</div>
-                  <div className="mt-1 font-heading text-4xl text-slate-950">{availableFamilies.length} lựa chọn</div>
-                  <div className="mt-1 text-sm text-slate-500">
-                    {catalogStatus === "loading" && "Đang tải thêm Pokémon từ PokeAPI..."}
-                    {catalogStatus === "ready" && "Đã tải thêm nhiều Pokémon quen thuộc cho lớp."}
-                    {catalogStatus === "error" && "Tạm thời chưa tải thêm được, đang dùng danh sách có sẵn."}
-                  </div>
-                </div>
-
-                <div className="rounded-[2rem] border-2 border-white/90 bg-[linear-gradient(135deg,rgba(255,245,202,0.95),rgba(255,255,255,0.9),rgba(217,244,255,0.95))] px-5 py-4 shadow-[0_18px_36px_rgba(97,117,143,0.12)] sm:col-span-2 xl:col-span-1">
-                  <div className="kid-label text-sky-700">Gợi ý nhanh</div>
-                  <div className="mt-2 font-heading text-3xl text-slate-950">Chuẩn bị trong một khung nhìn</div>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Chọn số đội trước, rồi đặt tên và chọn Pokémon đại diện cho từng nhóm ngay bên dưới.
-                  </p>
-                </div>
-              </div>
+            <div className="mt-6 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => updateTeamCount(selectedCount - 1)}
+                className="grid h-14 w-14 place-items-center rounded-[1.5rem] border-2 border-slate-200 bg-white text-2xl font-black text-slate-900 shadow-[0_14px_28px_rgba(97,117,143,0.14)]"
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={() => updateTeamCount(selectedCount + 1)}
+                className="grid h-14 w-14 place-items-center rounded-[1.5rem] border-2 border-cyan-300 bg-cyan-400 text-2xl font-black text-white shadow-[0_14px_28px_rgba(34,211,238,0.28)]"
+              >
+                +
+              </button>
             </div>
+
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {Array.from({ length: TEAM_LIMITS.max - TEAM_LIMITS.min + 1 }, (_, index) => TEAM_LIMITS.min + index).map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => updateTeamCount(count)}
+                  className={cn(
+                    "rounded-[1.4rem] border-2 px-4 py-3 text-base font-black transition duration-200",
+                    selectedCount === count
+                      ? "border-cyan-300 bg-cyan-400 text-white shadow-[0_16px_28px_rgba(34,211,238,0.26)]"
+                      : "border-white/90 bg-white/88 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50",
+                  )}
+                >
+                  {count} đội
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleStart}
+                className="rounded-full border-2 border-cyan-300 bg-cyan-400 px-7 py-4 font-black text-white shadow-[0_20px_40px_rgba(14,165,233,0.28)] transition hover:translate-y-[-1px]"
+              >
+                Bắt đầu tiết học
+              </button>
+              <Link
+                href="/teacher"
+                className="rounded-full border-2 border-white/90 bg-white px-6 py-4 font-bold text-slate-700 transition hover:border-cyan-200 hover:text-cyan-600"
+              >
+                Mở bảng chấm điểm
+              </Link>
+            </div>
+          </div>
         </section>
 
         <section className="mt-8 space-y-5">

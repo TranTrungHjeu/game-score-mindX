@@ -126,10 +126,6 @@ export default function DisplayArena() {
     { team: rankedTeams[0] ?? null, rank: 1, pedestalHeight: 176, accent: "#fde68a" },
     { team: rankedTeams[2] ?? null, rank: 3, pedestalHeight: 108, accent: "#fbcfe8" },
   ] as const;
-  const leader = rankedTeams[0] ?? null;
-  const runnerUp = rankedTeams[1] ?? null;
-  const leaderStage = leader ? getEvolutionStage(leader.mascot, leader.displayLevel) : null;
-  const leaderGap = leader && runnerUp ? leader.score - runnerUp.score : null;
   const latestBurst = rankBursts[rankBursts.length - 1] ?? null;
 
   return (
@@ -141,127 +137,7 @@ export default function DisplayArena() {
         <section className="display-stage relative overflow-hidden rounded-[2.5rem] px-5 py-6 text-white shadow-[0_32px_80px_rgba(7,18,40,0.36)] sm:px-8 sm:py-8">
           <div className="display-stage__glow absolute left-1/2 top-[-4rem] h-[22rem] w-[22rem] -translate-x-1/2 rounded-full" />
           <div className="display-stage__spotlights pointer-events-none absolute inset-0" />
-          <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] xl:items-start">
-            <div>
-              <div className="kid-chip border-white/20 bg-white/12 text-sm font-bold text-cyan-100 shadow-none">Đấu trường Pokémon</div>
-              <h1 className="mt-4 font-heading text-4xl leading-tight text-white sm:text-6xl">
-                Bảng xếp hạng trực tiếp của cả lớp
-              </h1>
-              <p className="mt-3 max-w-2xl text-base leading-7 text-white/78 sm:text-lg">
-                Mỗi lần cộng điểm là một bước tiến hóa mới. Cả lớp chỉ cần nhìn lên màn hình là biết đội nào đang bứt lên.
-              </p>
-
-              <div className="display-stage__ticker mt-6">
-                <div className="display-stage__ticker-card">
-                  <div className="display-stage__ticker-label">Đội đang dẫn đầu</div>
-                  <div className="mt-3 font-heading text-2xl text-white sm:text-3xl">{leader?.name ?? "Sẵn sàng thi đấu"}</div>
-                  <div className="mt-1 text-sm text-white/70">{leaderStage ? `${leaderStage.name} · ${formatPoints(leader.score)}` : "Bắt đầu cộng điểm để chọn đội dẫn đầu."}</div>
-                </div>
-                <div className="display-stage__ticker-card">
-                  <div className="display-stage__ticker-label">Khoảng cách hiện tại</div>
-                  <div className="mt-3 font-heading text-2xl text-white sm:text-3xl">
-                    {leaderGap === null ? "Chờ bắt đầu" : leaderGap > 0 ? formatPoints(leaderGap) : "Đang ngang điểm"}
-                  </div>
-                  <div className="mt-1 text-sm text-white/70">
-                    {runnerUp ? `So với đội #2 là ${runnerUp.name}` : "Cần ít nhất 2 đội để so khoảng cách."}
-                  </div>
-                </div>
-                <div className="display-stage__ticker-card">
-                  <div className="display-stage__ticker-label">Diễn biến mới nhất</div>
-                  <div className="mt-3 font-heading text-2xl text-white sm:text-3xl">{latestBurst ? latestBurst.teamName : "Sân đấu ổn định"}</div>
-                  <div className="mt-1 text-sm text-white/70">
-                    {latestBurst
-                      ? `Vừa vươn từ hạng ${latestBurst.fromRank} lên hạng ${latestBurst.toRank}.`
-                      : "Khi có đội vượt hạng, thông báo sẽ hiện ngay tại đây."}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <aside className="display-stage__focus rounded-[2rem] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
-              <div className="text-sm font-black uppercase tracking-[0.12em] text-cyan-100/80">Tâm điểm trên sân</div>
-              {leader ? (
-                <div className="mt-4 rounded-[1.7rem] border border-white/14 bg-white/8 p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="rounded-[1.5rem] border border-white/16 bg-white/10 p-3">
-                      <MascotAvatar
-                        family={leader.mascot}
-                        level={leader.displayLevel}
-                        size={88}
-                        glow
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-heading text-3xl leading-none text-white">{leader.name}</div>
-                      <div className="mt-2 text-sm text-white/72">{leaderStage?.name}</div>
-                      <div className="mt-3 inline-flex rounded-full border border-white/16 bg-white/12 px-3 py-1 text-sm font-black text-white">
-                        {formatPoints(leader.score)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-sm leading-6 text-white/70">
-                    {leaderGap === null
-                      ? "Bắt đầu chấm điểm để chọn đội mở màn cho bục vinh danh."
-                      : leaderGap > 0
-                        ? `${leader.name} đang dẫn ${formatPoints(leaderGap)} so với đội bám sát phía sau.`
-                        : "Hai đội đầu đang bám sát nhau. Chỉ một lần cộng điểm là có thể đổi hạng ngay."}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-[1.4rem] border border-white/16 bg-white/8 px-4 py-3">
-                  <div className="text-xs font-bold uppercase tracking-[0.08em] text-white/58">Số đội</div>
-                  <div className="mt-2 font-heading text-3xl text-white">{teams.length}</div>
-                </div>
-                <div className="rounded-[1.4rem] border border-white/16 bg-white/8 px-4 py-3">
-                  <div className="text-xs font-bold uppercase tracking-[0.08em] text-white/58">Trạng thái</div>
-                  <div className="mt-2 font-heading text-3xl text-white">{activeOverlay ? "Tiến hóa" : "Thi đấu"}</div>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <AnimatePresence initial={false}>
-                  {rankBursts.length ? (
-                    rankBursts.map((burst) => (
-                      <motion.div
-                        key={burst.id}
-                        initial={{ opacity: 0, x: 24, scale: 0.92 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 30, scale: 0.94 }}
-                        transition={{ duration: 0.35, ease: "easeOut" }}
-                        className="display-rank-burst"
-                        style={{
-                          background: `linear-gradient(135deg, ${burst.accentColor}28 0%, rgba(255,255,255,0.12) 100%)`,
-                          borderColor: `${burst.accentColor}66`,
-                        }}
-                      >
-                        <div className="display-rank-burst__label">Đội vừa bứt hạng</div>
-                        <div className="mt-2 font-heading text-2xl leading-none text-white">{burst.teamName}</div>
-                        <div className="mt-2 text-sm text-white/72">
-                          Từ hạng {burst.fromRank} lên hạng {burst.toRank}
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <motion.div
-                      key="steady"
-                      initial={{ opacity: 0.5 }}
-                      animate={{ opacity: 1 }}
-                      className="display-rank-burst display-rank-burst--idle"
-                    >
-                      <div className="display-rank-burst__label">Nhịp thi đấu</div>
-                      <div className="mt-2 text-sm leading-6 text-white/72">
-                        Khi có đội vượt hạng, thông báo sẽ hiện ở đây để cả lớp theo dõi kịp thời.
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </aside>
-          </div>
-
-          <div className="display-podium mt-8">
+          <div className="display-podium relative">
             {podiumSlots.map((slot) => {
               const stage = slot.team ? getEvolutionStage(slot.team.mascot, slot.team.displayLevel) : null;
 

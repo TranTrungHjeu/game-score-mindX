@@ -61,7 +61,7 @@ export function TeamDisplayCard({ team, rank, isLeader, featured = false, classN
             {team.name}
           </h3>
           <p className={cn("mt-2 text-sm text-slate-600", featured && "text-base")}>
-            {currentStage.name} · Giai đoạn {team.displayLevel}/{stageCount}
+            {currentStage.name} · Dạng {team.displayLevel}/{stageCount}
           </p>
         </div>
         <div className="rounded-full border-2 border-white/85 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-lg">
@@ -96,8 +96,8 @@ export function TeamDisplayCard({ team, rank, isLeader, featured = false, classN
           <ProgressRing
             progress={progress}
             accent={team.accentColor}
-            label={`GĐ ${team.unlockedLevel}`}
-            sublabel={team.unlockedLevel >= stageCount ? "Tối đa" : "Mốc tiếp theo"}
+            label={`Dạng ${team.unlockedLevel}`}
+            sublabel={team.unlockedLevel >= stageCount ? "Đã tối đa" : "Sắp tiến hóa"}
             size={ringSize}
           />
           <div className={cn("flex flex-wrap justify-center gap-2", featured && "lg:justify-end")}>
@@ -105,12 +105,12 @@ export function TeamDisplayCard({ team, rank, isLeader, featured = false, classN
               {currentStage.name}
             </div>
             <div className="rounded-full border-2 border-cyan-100 bg-cyan-50 px-3 py-2 text-xs font-black text-cyan-700">
-              {Math.round(progress * 100)}% tới mốc mới
+              {team.unlockedLevel >= stageCount ? "Đã chạm dạng cuối" : `${Math.round(progress * 100)}% đến lần tiến hóa tiếp theo`}
             </div>
           </div>
           {isLeader ? (
             <div className="rounded-full border-2 border-amber-100 bg-amber-300 px-4 py-2 text-xs font-black text-slate-900">
-              Đang tạm dẫn đầu
+              Đang dẫn đầu
             </div>
           ) : null}
         </div>

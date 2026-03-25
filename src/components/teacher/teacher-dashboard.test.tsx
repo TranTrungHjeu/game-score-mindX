@@ -7,7 +7,7 @@ import TeacherDashboard from "@/components/teacher/teacher-dashboard";
 import { useClassroomStore } from "@/store/use-classroom-store";
 
 describe("TeacherDashboard", () => {
-  it("lets the teacher update score, toggle audio, and replay evolution", async () => {
+  it("lets the teacher update score, undo the last action, replay evolution, and open the session summary", async () => {
     const session = createSessionFromTeams({
       teams: [
         { name: "Team Sao", mascot: MASCOT_FAMILIES[0]! },
@@ -29,11 +29,20 @@ describe("TeacherDashboard", () => {
     const teamSaoCard = screen.getByRole("heading", { name: "Team Sao" }).closest("article");
     expect(teamSaoCard).not.toBeNull();
 
-    await user.click(within(teamSaoCard as HTMLElement).getByRole("button", { name: "+10 điểm" }));
+    await user.click(within(teamSaoCard as HTMLElement).getByRole("button", { name: "+5 điểm" }));
+    await user.click(within(teamSaoCard as HTMLElement).getByRole("button", { name: "+5 điểm" }));
     expect(useClassroomStore.getState().teams.find((team) => team.name === "Team Sao")?.score).toBe(10);
     expect(useClassroomStore.getState().overlayQueue).toHaveLength(1);
 
-    await user.click(within(teamSaoCard as HTMLElement).getByRole("button", { name: "Xem lại tiến hóa" }));
+    await user.click(within(teamSaoCard as HTMLElement).getByRole("button", { name: "Xem tiến hóa" }));
     expect(useClassroomStore.getState().overlayQueue).toHaveLength(2);
+
+    await user.click(screen.getByRole("button", { name: "Hoàn tác lượt vừa rồi" }));
+    expect(useClassroomStore.getState().teams.find((team) => team.name === "Team Sao")?.score).toBe(5);
+    expect(useClassroomStore.getState().overlayQueue).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: "Kết thúc buổi học" }));
+    expect(screen.getByText("Tổng kết buổi học")).toBeInTheDocument();
+    expect(screen.getByText("Bục vinh danh")).toBeInTheDocument();
   });
 });

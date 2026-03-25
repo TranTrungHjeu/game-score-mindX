@@ -70,12 +70,6 @@ export function MascotAvatar({
           />
         </div>
       </div>
-
-      <div className="absolute inset-x-0 bottom-[14%] px-3 text-center">
-        <div className="inline-flex rounded-full border-2 border-white/80 bg-white/88 px-3 py-1 text-xs font-black text-slate-800 shadow-lg">
-          {stage.name}
-        </div>
-      </div>
     </div>
   );
 }

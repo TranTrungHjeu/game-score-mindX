@@ -12,7 +12,7 @@ import {
   setMissionInState,
   updateTeamScoreInState,
 } from "@/lib/game-logic";
-import { clearStoredState, getBroadcastChannel, getStoredState, persistState } from "@/lib/storage";
+import { broadcastState, clearStoredState, getStoredState, persistState } from "@/lib/storage";
 import type {
   ClassroomState,
   OverlayEvent,
@@ -23,8 +23,10 @@ import type {
 
 type ClassroomStore = ClassroomState & {
   isHydrated: boolean;
+  history: ClassroomState[];
   createSession: (payload: SessionPayload) => void;
   updateTeamScore: (teamId: string, delta: number) => ScoreUpdateResult;
+  undoLastScore: () => boolean;
   setMission: (missionId: string) => void;
   replayEvolution: (teamId: string) => OverlayEvent | null;
   toggleAudio: () => void;
@@ -47,26 +49,47 @@ function snapshotState(state: ClassroomStore): ClassroomState {
 
 function publishState(state: ClassroomState) {
   persistState(state);
-  getBroadcastChannel()?.postMessage(state);
+  broadcastState(state);
 }
 
 export const useClassroomStore = create<ClassroomStore>((set, get) => ({
   ...createEmptyClassroomState(),
   isHydrated: false,
+  history: [],
   createSession: (payload) => {
     const nextState = createSessionFromTeams(payload);
-    set({ ...nextState, isHydrated: true });
+    set({ ...nextState, isHydrated: true, history: [] });
     publishState(nextState);
   },
   updateTeamScore: (teamId, delta) => {
+    const previousState = snapshotState(get());
     const { nextState, overlaysAdded } = updateTeamScoreInState(snapshotState(get()), teamId, delta);
-    set({ ...nextState, isHydrated: true });
+    set({
+      ...nextState,
+      isHydrated: true,
+      history: [...get().history.slice(-19), previousState],
+    });
     publishState(nextState);
 
     return {
       team: nextState.teams.find((team) => team.id === teamId) ?? null,
       overlaysAdded,
     };
+  },
+  undoLastScore: () => {
+    const previousState = get().history[get().history.length - 1];
+
+    if (!previousState) {
+      return false;
+    }
+
+    set({
+      ...previousState,
+      isHydrated: true,
+      history: get().history.slice(0, -1),
+    });
+    publishState(previousState);
+    return true;
   },
   setMission: (missionId) => {
     const nextState = setMissionInState(snapshotState(get()), missionId);
@@ -90,22 +113,22 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
   },
   resetSession: () => {
     const nextState = resetSessionState();
-    set({ ...nextState, isHydrated: true });
+    set({ ...nextState, isHydrated: true, history: [] });
     clearStoredState();
-    getBroadcastChannel()?.postMessage(nextState);
+    broadcastState(nextState);
   },
   hydrateFromStorage: () => {
     const storedState = getStoredState();
 
     if (storedState) {
-      set({ ...normalizeClassroomState(storedState), isHydrated: true });
+      set({ ...normalizeClassroomState(storedState), isHydrated: true, history: [] });
       return;
     }
 
-    set({ ...createEmptyClassroomState(), isHydrated: true });
+    set({ ...createEmptyClassroomState(), isHydrated: true, history: [] });
   },
   syncFromBroadcast: (state) => {
-    set({ ...normalizeClassroomState(state), isHydrated: true });
+    set({ ...normalizeClassroomState(state), isHydrated: true, history: [] });
   },
   consumeEvolution: (overlayId, teamId, toLevel) => {
     const nextState = finalizeDisplayedEvolution(snapshotState(get()), overlayId, teamId, toLevel);
