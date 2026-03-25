@@ -15,8 +15,7 @@ const bodyFont = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Pokémon Evolution Arena",
-  description: "Ứng dụng game hóa cho lớp robotics 4-6 tuổi với bảng điểm và Pokémon tiến hóa theo thời gian thực.",
+  title: "Gamescore MindX",
 };
 
 export default function RootLayout({
