@@ -1,6 +1,34 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { Howl } from "howler";
+
+const SOUND_FILES = {
+  evolutionCharge: "/audio/evolution-charge.wav",
+  evolutionFlash: "/audio/evolution-flash.wav",
+  evolutionReveal: "/audio/evolution-reveal.wav",
+} as const;
+
+let evolutionChargeHowl: Howl | null = null;
+let evolutionFlashHowl: Howl | null = null;
+let evolutionRevealHowl: Howl | null = null;
+
+function getHowl(
+  current: Howl | null,
+  source: string,
+  volume: number,
+) {
+  if (current) {
+    return current;
+  }
+
+  return new Howl({
+    src: [source],
+    volume,
+    preload: true,
+    html5: false,
+  });
+}
 
 function useAudioContext() {
   const contextRef = useRef<AudioContext | null>(null);
@@ -71,24 +99,52 @@ export function useSoundEffects(enabled: boolean) {
     playTone(context, 1040, 0.18, "sine", 0.06, 0.04);
   }, [enabled, getContext]);
 
-  const playEvolutionWhoosh = useCallback(() => {
+  const stopEvolutionAudio = useCallback(() => {
+    evolutionChargeHowl?.stop();
+    evolutionFlashHowl?.stop();
+    evolutionRevealHowl?.stop();
+  }, []);
+
+  const playEvolutionCharge = useCallback(() => {
     if (!enabled) {
       return;
     }
 
-    const context = getContext();
+    evolutionChargeHowl = getHowl(evolutionChargeHowl, SOUND_FILES.evolutionCharge, 0.38);
+    evolutionChargeHowl.stop();
+    evolutionChargeHowl.play();
+  }, [enabled]);
 
-    if (!context) {
+  const playEvolutionFlash = useCallback(() => {
+    if (!enabled) {
       return;
     }
 
-    playTone(context, 220, 0.3, "sawtooth", 0.05);
-    playTone(context, 440, 0.4, "square", 0.05, 0.08);
-    playTone(context, 880, 0.5, "triangle", 0.04, 0.16);
-  }, [enabled, getContext]);
+    evolutionFlashHowl = getHowl(evolutionFlashHowl, SOUND_FILES.evolutionFlash, 0.44);
+    evolutionFlashHowl.stop();
+    evolutionFlashHowl.play();
+  }, [enabled]);
+
+  const playEvolutionReveal = useCallback(() => {
+    if (!enabled) {
+      return;
+    }
+
+    evolutionRevealHowl = getHowl(evolutionRevealHowl, SOUND_FILES.evolutionReveal, 0.42);
+    evolutionRevealHowl.stop();
+    evolutionRevealHowl.play();
+  }, [enabled]);
+
+  const playEvolutionWhoosh = useCallback(() => {
+    playEvolutionCharge();
+  }, [playEvolutionCharge]);
 
   return {
     playScoreDing,
     playEvolutionWhoosh,
+    playEvolutionCharge,
+    playEvolutionFlash,
+    playEvolutionReveal,
+    stopEvolutionAudio,
   };
 }

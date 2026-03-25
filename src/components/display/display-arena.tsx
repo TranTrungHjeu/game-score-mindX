@@ -36,6 +36,7 @@ export default function DisplayArena() {
   const teams = useClassroomStore((state) => state.teams);
   const overlayQueue = useClassroomStore((state) => state.overlayQueue);
   const isHydrated = useClassroomStore((state) => state.isHydrated);
+  const audioEnabled = useClassroomStore((state) => state.audioEnabled);
   const consumeEvolution = useClassroomStore((state) => state.consumeEvolution);
 
   const rankedTeams = useMemo(() => rankTeams(teams), [teams]);
@@ -215,6 +216,7 @@ export default function DisplayArena() {
         {activeOverlay ? (
           <EvolutionOverlay
             overlay={activeOverlay}
+            audioEnabled={audioEnabled}
             onComplete={() => consumeEvolution(activeOverlay.id, activeOverlay.teamId, activeOverlay.toLevel)}
           />
         ) : null}

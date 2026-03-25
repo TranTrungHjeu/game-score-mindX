@@ -52,6 +52,16 @@ Object.defineProperty(window, "confirm", {
   value: vi.fn(() => true),
 });
 
+Object.defineProperty(window.HTMLMediaElement.prototype, "play", {
+  writable: true,
+  value: vi.fn().mockResolvedValue(undefined),
+});
+
+Object.defineProperty(window.HTMLMediaElement.prototype, "load", {
+  writable: true,
+  value: vi.fn(),
+});
+
 beforeEach(() => {
   window.localStorage.clear();
 });
