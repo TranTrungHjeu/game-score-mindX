@@ -1,0 +1,15 @@
+
+> gamescore@1.0.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.246:3000
+✓ Ready in 1940ms
+Creating turbopack project { dir: 'E:\\Work\\MindX\\GameScore', testMode: true }
+⚠ Slow filesystem detected. The benchmark took 221ms. If E:\Work\MindX\GameScore\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+
+○ Compiling / ...
+[?25h
+^C
