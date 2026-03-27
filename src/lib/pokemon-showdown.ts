@@ -18,9 +18,14 @@ function toShowdownId(value: string) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
+function isValidSpriteUrl(url: string | undefined) {
+  return Boolean(url && !url.endsWith("/0.png") && !url.endsWith("/0.gif"));
+}
+
 function tryGetAnimatedSprite(name: string) {
   try {
-    return Sprites.getPokemon(name, { gen: "gen5ani" });
+    const sprite = Sprites.getPokemon(name, { gen: "gen5ani" });
+    return isValidSpriteUrl(sprite?.url) ? sprite : null;
   } catch {
     return null;
   }
@@ -28,7 +33,8 @@ function tryGetAnimatedSprite(name: string) {
 
 function tryGetStaticSprite(name: string) {
   try {
-    return Sprites.getPokemon(name, { gen: 5 });
+    const sprite = Sprites.getPokemon(name, { gen: 5 });
+    return isValidSpriteUrl(sprite?.url) ? sprite : null;
   } catch {
     return null;
   }
@@ -36,13 +42,19 @@ function tryGetStaticSprite(name: string) {
 
 function tryGetDexSprite(name: string) {
   try {
-    return Sprites.getDexPokemon(name, { gen: "dex" });
+    const sprite = Sprites.getDexPokemon(name, { gen: "dex" });
+    return isValidSpriteUrl(sprite?.url) ? sprite : null;
   } catch {
     return null;
   }
 }
 
 export function getPokemonShowdownSprite(stage: EvolutionStage): ShowdownSprite | null {
-  const id = toShowdownId(stage.name);
+  const id = stage.showdownName ?? toShowdownId(stage.name);
   return tryGetAnimatedSprite(id) ?? tryGetStaticSprite(id) ?? tryGetDexSprite(id);
+}
+
+export function getPokemonShowdownDexSprite(stage: EvolutionStage): ShowdownSprite | null {
+  const id = stage.showdownName ?? toShowdownId(stage.name);
+  return tryGetDexSprite(id) ?? tryGetStaticSprite(id) ?? tryGetAnimatedSprite(id);
 }

@@ -3,13 +3,18 @@
 import { create } from "zustand";
 
 import {
+  addQuestionInState,
   createEmptyClassroomState,
   createSessionFromTeams,
   finalizeDisplayedEvolution,
   normalizeClassroomState,
   replayEvolutionInState,
+  removeQuestionInState,
   resetSessionState,
   setMissionInState,
+  updateQuestionPromptInState,
+  setQuestionWinnerInState,
+  triggerMegaEvolutionInState,
   updateTeamScoreInState,
 } from "@/lib/game-logic";
 import { broadcastState, clearStoredState, getStoredState, persistState } from "@/lib/storage";
@@ -28,18 +33,24 @@ type ClassroomStore = ClassroomState & {
   updateTeamScore: (teamId: string, delta: number) => ScoreUpdateResult;
   undoLastScore: () => boolean;
   setMission: (missionId: string) => void;
+  setQuestionWinner: (questionId: string, teamId: string | null) => void;
+  updateQuestionPrompt: (questionId: string, prompt: string) => void;
+  addQuestion: () => void;
+  removeQuestion: (questionId: string) => void;
   replayEvolution: (teamId: string) => OverlayEvent | null;
+  triggerMegaEvolution: (teamId: string) => OverlayEvent | null;
   toggleAudio: () => void;
   resetSession: () => void;
   hydrateFromStorage: () => void;
   syncFromBroadcast: (state: ClassroomState) => void;
-  consumeEvolution: (overlayId: string, teamId: string, toLevel: number) => void;
+  consumeEvolution: (overlayId: string) => void;
 };
 
 function snapshotState(state: ClassroomStore): ClassroomState {
   return {
     teams: state.teams,
     currentMission: state.currentMission,
+    questions: state.questions,
     audioEnabled: state.audioEnabled,
     overlayQueue: state.overlayQueue,
     lastUpdatedAt: state.lastUpdatedAt,
@@ -96,9 +107,57 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
     set({ ...nextState, isHydrated: true });
     publishState(nextState);
   },
+  setQuestionWinner: (questionId, teamId) => {
+    const previousState = snapshotState(get());
+    const nextState = setQuestionWinnerInState(snapshotState(get()), questionId, teamId);
+    set({
+      ...nextState,
+      isHydrated: true,
+      history: [...get().history.slice(-19), previousState],
+    });
+    publishState(nextState);
+  },
+  updateQuestionPrompt: (questionId, prompt) => {
+    const nextState = updateQuestionPromptInState(snapshotState(get()), questionId, prompt);
+    set({ ...nextState, isHydrated: true });
+    publishState(nextState);
+  },
+  addQuestion: () => {
+    const previousState = snapshotState(get());
+    const nextState = addQuestionInState(snapshotState(get()));
+    const didChange = nextState.questions.length !== previousState.questions.length;
+    set({
+      ...nextState,
+      isHydrated: true,
+      history: didChange ? [...get().history.slice(-19), previousState] : get().history,
+    });
+    publishState(nextState);
+  },
+  removeQuestion: (questionId) => {
+    const previousState = snapshotState(get());
+    const nextState = removeQuestionInState(snapshotState(get()), questionId);
+    const didChange = nextState.questions.length !== previousState.questions.length;
+    set({
+      ...nextState,
+      isHydrated: true,
+      history: didChange ? [...get().history.slice(-19), previousState] : get().history,
+    });
+    publishState(nextState);
+  },
   replayEvolution: (teamId) => {
     const { nextState, overlay } = replayEvolutionInState(snapshotState(get()), teamId);
     set({ ...nextState, isHydrated: true });
+    publishState(nextState);
+    return overlay;
+  },
+  triggerMegaEvolution: (teamId) => {
+    const previousState = snapshotState(get());
+    const { nextState, overlay } = triggerMegaEvolutionInState(snapshotState(get()), teamId);
+    set({
+      ...nextState,
+      isHydrated: true,
+      history: overlay ? [...get().history.slice(-19), previousState] : get().history,
+    });
     publishState(nextState);
     return overlay;
   },
@@ -130,8 +189,8 @@ export const useClassroomStore = create<ClassroomStore>((set, get) => ({
   syncFromBroadcast: (state) => {
     set({ ...normalizeClassroomState(state), isHydrated: true, history: [] });
   },
-  consumeEvolution: (overlayId, teamId, toLevel) => {
-    const nextState = finalizeDisplayedEvolution(snapshotState(get()), overlayId, teamId, toLevel);
+  consumeEvolution: (overlayId) => {
+    const nextState = finalizeDisplayedEvolution(snapshotState(get()), overlayId);
     set({ ...nextState, isHydrated: true });
     publishState(nextState);
   },

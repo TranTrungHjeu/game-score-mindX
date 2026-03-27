@@ -1,21 +1,14 @@
+import { buildAnimatedPath, buildArtworkPath, getEvolutionStage, getEvolutionStageCount, withMegaForms } from "@/lib/pokemon-helpers";
 import type { MascotFamily, Mission } from "@/lib/types";
 
 export const STORAGE_KEY = "robotics-evolution-arena:v1";
 export const CHANNEL_NAME = "robotics-evolution-arena";
 export const TEAM_LIMITS = {
   min: 2,
-  max: 4,
+  max: 5,
 } as const;
 
-function buildArtworkPath(id: number) {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-}
-
-function buildAnimatedPath(id: number) {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${id}.gif`;
-}
-
-export const MASCOT_FAMILIES: MascotFamily[] = [
+const BASE_MASCOT_FAMILIES: MascotFamily[] = [
   {
     id: "species-1",
     name: "Bulbasaur",
@@ -204,6 +197,8 @@ export const MASCOT_FAMILIES: MascotFamily[] = [
   },
 ];
 
+export const MASCOT_FAMILIES: MascotFamily[] = BASE_MASCOT_FAMILIES.map(withMegaForms);
+
 export const DEFAULT_MISSIONS: Mission[] = [
   {
     id: "assemble",
@@ -248,11 +243,4 @@ export function getFamilyById(id: string) {
   return MASCOT_FAMILIES.find((item) => item.id === id) ?? MASCOT_FAMILIES[0];
 }
 
-export function getEvolutionStage(family: MascotFamily, level: number) {
-  const safeIndex = Math.max(0, Math.min(level - 1, family.evolutionChain.length - 1));
-  return family.evolutionChain[safeIndex] ?? family.evolutionChain[0];
-}
-
-export function getEvolutionStageCount(family: MascotFamily) {
-  return family.evolutionChain.length;
-}
+export { getEvolutionStage, getEvolutionStageCount };

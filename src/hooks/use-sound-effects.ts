@@ -4,20 +4,14 @@ import { useCallback, useRef } from "react";
 import { Howl } from "howler";
 
 const SOUND_FILES = {
-  evolutionCharge: "/audio/evolution-charge.wav",
-  evolutionFlash: "/audio/evolution-flash.wav",
-  evolutionReveal: "/audio/evolution-reveal.wav",
+  evolution: "/audio/evolution.mp3",
+  mega: "/audio/mega.m4a",
 } as const;
 
-let evolutionChargeHowl: Howl | null = null;
-let evolutionFlashHowl: Howl | null = null;
-let evolutionRevealHowl: Howl | null = null;
+let evolutionHowl: Howl | null = null;
+let megaHowl: Howl | null = null;
 
-function getHowl(
-  current: Howl | null,
-  source: string,
-  volume: number,
-) {
+function getHowl(current: Howl | null, source: string, volume: number) {
   if (current) {
     return current;
   }
@@ -58,27 +52,20 @@ function useAudioContext() {
   }, []);
 }
 
-function playTone(
-  context: AudioContext,
-  frequency: number,
-  duration: number,
-  type: OscillatorType,
-  gainValue: number,
-  delay = 0,
-) {
+function createEnvelope(context: AudioContext, type: OscillatorType, frequency: number, gainValue: number, duration: number, startTime: number) {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
 
   oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, context.currentTime + delay);
-  gain.gain.setValueAtTime(0.0001, context.currentTime + delay);
-  gain.gain.exponentialRampToValueAtTime(gainValue, context.currentTime + delay + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + delay + duration);
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(gainValue, startTime + 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
   oscillator.connect(gain);
   gain.connect(context.destination);
-  oscillator.start(context.currentTime + delay);
-  oscillator.stop(context.currentTime + delay + duration + 0.05);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration + 0.05);
 }
 
 export function useSoundEffects(enabled: boolean) {
@@ -95,56 +82,57 @@ export function useSoundEffects(enabled: boolean) {
       return;
     }
 
-    playTone(context, 740, 0.12, "triangle", 0.08);
-    playTone(context, 1040, 0.18, "sine", 0.06, 0.04);
+    createEnvelope(context, "triangle", 740, 0.08, 0.12, context.currentTime);
+    createEnvelope(context, "sine", 1040, 0.06, 0.18, context.currentTime + 0.04);
   }, [enabled, getContext]);
 
   const stopEvolutionAudio = useCallback(() => {
-    evolutionChargeHowl?.stop();
-    evolutionFlashHowl?.stop();
-    evolutionRevealHowl?.stop();
+    evolutionHowl?.stop();
+    megaHowl?.stop();
   }, []);
 
-  const playEvolutionCharge = useCallback(() => {
-    if (!enabled) {
-      return;
-    }
-
-    evolutionChargeHowl = getHowl(evolutionChargeHowl, SOUND_FILES.evolutionCharge, 0.38);
-    evolutionChargeHowl.stop();
-    evolutionChargeHowl.play();
-  }, [enabled]);
-
-  const playEvolutionFlash = useCallback(() => {
-    if (!enabled) {
-      return;
-    }
-
-    evolutionFlashHowl = getHowl(evolutionFlashHowl, SOUND_FILES.evolutionFlash, 0.44);
-    evolutionFlashHowl.stop();
-    evolutionFlashHowl.play();
-  }, [enabled]);
-
-  const playEvolutionReveal = useCallback(() => {
-    if (!enabled) {
-      return;
-    }
-
-    evolutionRevealHowl = getHowl(evolutionRevealHowl, SOUND_FILES.evolutionReveal, 0.42);
-    evolutionRevealHowl.stop();
-    evolutionRevealHowl.play();
-  }, [enabled]);
-
   const playEvolutionWhoosh = useCallback(() => {
-    playEvolutionCharge();
-  }, [playEvolutionCharge]);
+    if (!enabled) {
+      return;
+    }
+
+    evolutionHowl = getHowl(evolutionHowl, SOUND_FILES.evolution, 0.5);
+    evolutionHowl.stop();
+    evolutionHowl.play();
+  }, [enabled]);
+
+  const playMegaEvolution = useCallback(() => {
+    if (!enabled) {
+      return;
+    }
+
+    megaHowl = getHowl(megaHowl, SOUND_FILES.mega, 0.54);
+    megaHowl.stop();
+    megaHowl.play();
+  }, [enabled]);
+
+  const playDevolutionSadTone = useCallback(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const context = getContext();
+
+    if (!context) {
+      return;
+    }
+
+    const start = context.currentTime;
+    createEnvelope(context, "triangle", 320, 0.05, 0.22, start);
+    createEnvelope(context, "triangle", 220, 0.05, 0.26, start + 0.14);
+    createEnvelope(context, "sine", 160, 0.04, 0.32, start + 0.3);
+  }, [enabled, getContext]);
 
   return {
     playScoreDing,
     playEvolutionWhoosh,
-    playEvolutionCharge,
-    playEvolutionFlash,
-    playEvolutionReveal,
+    playMegaEvolution,
+    playDevolutionSadTone,
     stopEvolutionAudio,
   };
 }

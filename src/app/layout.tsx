@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Mali, Nunito } from "next/font/google";
+import localFont from "next/font/local";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 
-const headingFont = Mali({
+const headingFont = localFont({
+  src: "../../public/fonts/Fz-Fragrant.otf",
   variable: "--font-heading",
-  subsets: ["latin", "vietnamese"],
-  weight: ["600", "700"],
+  display: "swap",
 });
 
 const bodyFont = Nunito({
@@ -16,6 +17,10 @@ const bodyFont = Nunito({
 
 export const metadata: Metadata = {
   title: "Gamescore MindX",
+  icons: {
+    icon: "/assets/favicon.ico",
+    shortcut: "/assets/favicon.ico",
+  },
 };
 
 export default function RootLayout({

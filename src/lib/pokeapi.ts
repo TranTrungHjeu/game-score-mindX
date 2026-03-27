@@ -1,3 +1,4 @@
+import { buildAnimatedPath, buildArtworkPath, withMegaForms } from "@/lib/pokemon-helpers";
 import type { MascotFamily } from "@/lib/types";
 
 type PokeApiSpecies = {
@@ -38,14 +39,6 @@ const COLOR_PALETTE: Record<string, { accent: string; secondary: string }> = {
   white: { accent: "#8ecae6", secondary: "#f8fbff" },
   black: { accent: "#64748b", secondary: "#e2e8f0" },
 };
-
-function buildArtworkPath(id: number) {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-}
-
-function buildAnimatedPath(id: number) {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${id}.gif`;
-}
 
 function formatPokemonName(value: string) {
   return value
@@ -105,7 +98,7 @@ export async function fetchPokemonFamilyBySpeciesId(speciesId: number): Promise<
   const names = stages.map((stage) => stage.name).join(" -> ");
   const baseName = stages[0]?.name ?? formatPokemonName(species.name);
 
-  return {
+  return withMegaForms({
     id: `species-${species.id}`,
     name: baseName,
     accent: palette.accent,
@@ -122,7 +115,7 @@ export async function fetchPokemonFamilyBySpeciesId(speciesId: number): Promise<
       animatedPath: buildAnimatedPath(stage.id),
       summary: getStageSummary(stage.name, index, stages.length),
     })),
-  };
+  });
 }
 
 export async function fetchPokemonCatalog() {
